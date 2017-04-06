@@ -3,10 +3,16 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "amphtml-validator": "^1.0.20",
+    "hapi": "^16.1.1",
+    "inert": "^4.2.0",
+    "request": "^2.81.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
 }
