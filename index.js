@@ -12,6 +12,17 @@ const server = new Hapi.Server();
 server.connection({host: 'localhost', port: 8000});
 server.register(Inert, () => {});
 
+server.register(require('vision'), (err) => {
+  if (err) {
+    console.log("Failed to load vision.");
+  }
+  server.views({
+      engines: { ejs: require('ejs') },
+      relativeTo: __dirname,
+      path: './templates'
+  });
+});
+
 server.route([{
   // VALID AMP
   method: 'GET',
@@ -39,6 +50,52 @@ server.route([{
       if (response.statusCode >= 200 && response.statusCode < 300) {
         Amp.getInstance().then((validator) => {
           reply(validator.validateString(body)).code(200);
+        });
+      }
+    });
+  }
+},{
+  method: 'GET',
+  path: '/badge',
+  handler: (request, reply) => {
+    const badgeSucess = {
+      key_color: '#555',
+      key_text_anchor: 18.5,
+      key_text: 'build',
+      key_value_width: 54,
+      key_width: 37,
+      value_color: '#4c1',
+      value_text_anchor: 63,
+      value_text: 'success',
+      value_width: 54,
+      width: 91
+    }
+
+    const badgeFailed = {
+      key_color: '#555',
+      key_text_anchor: 18.5,
+      key_text: 'build',
+      key_value_width: 54,
+      key_width: 37,
+      value_color: '#e05d44',
+      value_text_anchor: 56.5,
+      value_text: 'failed',
+      value_width: 54,
+      width: 78
+    }
+
+    let isValid = false;
+
+    Request(request.query.amp, function(error, response, body) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        Amp.getInstance().then((validator) => {
+          let result = validator.validateString(body);
+          isValid = (result.status === 'PASS');
+          reply.view('badge.svg.ejs', {
+              badge: isValid ? badgeSucess : badgeFailed
+          }, {
+            contentType: 'image/svg+xml'
+          });
         });
       }
     });
