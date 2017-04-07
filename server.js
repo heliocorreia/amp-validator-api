@@ -7,6 +7,8 @@ const Inert = require('inert');
 const Url = require('url');
 const Request = require('request');
 
+const myValidatorJs = 'http://0.0.0.0:8888/validator.js';
+
 const server = new Hapi.Server();
 
 server.connection({host: '0.0.0.0', port: process.env.PORT || 8888});
@@ -44,6 +46,29 @@ server.route([{
     reply.file('invalid.amp');
   }
 },{
+  method: 'GET',
+  path:'/validator.js',
+  handler: function (request, reply) {
+    reply.file('validator.js').type('text/javascript');
+  }
+},{
+  // VALIDATE
+  method: 'GET',
+  path:'/validate',
+  handler: (request, reply) => {
+    if (!request.query.amp) {
+      return reply().code(400);
+    }
+
+    Request(request.query.amp, function(error, response, body) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        Amp.getInstance(myValidatorJs).then((validator) => {
+          reply(validator.validateString(body)).code(200);
+        });
+      }
+    });
+  }
+},{
   // VALIDATE
   method: 'POST',
   path:'/validate',
@@ -54,7 +79,7 @@ server.route([{
 
     Request(request.payload.amp, function(error, response, body) {
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        Amp.getInstance().then((validator) => {
+        Amp.getInstance(myValidatorJs).then((validator) => {
           reply(validator.validateString(body)).code(200);
         });
       }
@@ -94,7 +119,7 @@ server.route([{
 
     Request(request.query.amp, function(error, response, body) {
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        Amp.getInstance().then((validator) => {
+        Amp.getInstance(myValidatorJs).then((validator) => {
           let result = validator.validateString(body);
           isValid = (result.status === 'PASS');
           reply.view('badge.svg.ejs', {
