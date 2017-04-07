@@ -6,6 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "private": true,
   "dependencies": {
     "amphtml-validator": "^1.0.20",
     "ejs": "^2.5.6",
