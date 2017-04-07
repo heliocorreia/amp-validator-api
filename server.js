@@ -7,11 +7,14 @@ const Inert = require('inert');
 const Url = require('url');
 const Request = require('request');
 
-const myValidatorJs = 'http://0.0.0.0:8888/validator.js';
-
 const server = new Hapi.Server();
+const bindHost = '0.0.0.0';
+const bindPort = process.env.PORT || 8888;
 
-server.connection({host: '0.0.0.0', port: process.env.PORT || 8888});
+let AmpValidator;
+
+
+server.connection({host: bindHost, port: bindPort});
 server.register(Inert, () => {});
 
 server.register(require('vision'), (err) => {
@@ -62,9 +65,7 @@ server.route([{
 
     Request(request.query.amp, function(error, response, body) {
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        Amp.getInstance(myValidatorJs).then((validator) => {
-          reply(validator.validateString(body)).code(200);
-        });
+        reply(AmpValidator.validateString(body)).code(200);
       }
     });
   }
@@ -79,9 +80,7 @@ server.route([{
 
     Request(request.payload.amp, function(error, response, body) {
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        Amp.getInstance(myValidatorJs).then((validator) => {
-          reply(validator.validateString(body)).code(200);
-        });
+        reply(AmpValidator.validateString(body)).code(200);
       }
     });
   }
@@ -119,23 +118,32 @@ server.route([{
 
     Request(request.query.amp, function(error, response, body) {
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        Amp.getInstance(myValidatorJs).then((validator) => {
-          let result = validator.validateString(body);
-          isValid = (result.status === 'PASS');
-          reply.view('badge.svg.ejs', {
-              badge: isValid ? badgeSucess : badgeFailed
-          }, {
-            contentType: 'image/svg+xml'
-          });
+
+        let result = AmpValidator.validateString(body);
+        isValid = (result.status === 'PASS');
+
+        reply.view('badge.svg.ejs', {
+            badge: isValid ? badgeSucess : badgeFailed
+        }, {
+          contentType: 'image/svg+xml'
         });
+
       }
     });
   }
 }]);
 
+
 server.start((err) => {
   if (err) {
     throw err;
   }
+
   console.log('Server running at:', server.info.uri);
+
+  Amp.getInstance(server.info.uri + '/validator.js').then((validator) => {
+    AmpValidator = validator;
+    console.log('Ready!');
+  });
+
 });
