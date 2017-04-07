@@ -9,7 +9,7 @@ const Request = require('request');
 
 const server = new Hapi.Server();
 
-server.connection({host: 'localhost', port: 8000});
+server.connection({host: '0.0.0.0', port: process.env.PORT || 8888});
 server.register(Inert, () => {});
 
 server.register(require('vision'), (err) => {
