@@ -24,6 +24,12 @@ server.register(require('vision'), (err) => {
 });
 
 server.route([{
+  method: 'GET',
+  path:'/healthcheck',
+  handler: function (request, reply) {
+    reply('OK');
+  }
+},{
   // VALID AMP
   method: 'GET',
   path:'/valid.amp',
